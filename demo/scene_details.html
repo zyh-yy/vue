@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场景详情页</title>
+    <link rel="stylesheet" href="scene.css">
+    <style>
+        .scrollable-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .scrollable-list li {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .scrollable-list li.active {
+            background-color: blue;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="username-display">{{ username }}</div>
+        <div class="back-button">
+            <button @click="goBack">返回</button>
+        </div>
+        <div class="details-container">
+            <div class="left-column">
+                <h3>可选字段列表</h3>
+                <ul class="scrollable-list" @click="handleRowClick">
+                    <li v-for="field in fields" :key="field.field_id" :data-field-id="field.field_id"
+                        :class="{ 'active': selectedFieldId === field.field_id }">
+                        <strong>{{ field.field_name }}</strong><br>
+                        {{ field.description }}<br>
+                        {{ field.field_type }}
+                    </li>
+                </ul>
+            </div>
+            <div class="right-column">
+                <h3>其他信息</h3>
+                <!-- 右侧列表内容待添加 -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createApp, ref, onMounted } from "./vue.esm-browser.js";
+
+        createApp({
+            setup() {
+                const fields = ref([]);
+                const username = ref('');
+                const selectedFieldId = ref(null);
+
+                const goBack = () => {
+                    window.location.href = 'scene.html';
+                };
+
+                const fetchFields = async () => {
+                    try {
+                        const response = await fetch('http://127.0.0.1:8080/api/get_fields', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('获取字段信息失败');
+                        }
+
+                        const data = await response.json();
+                        fields.value = data;
+
+                    } catch (err) {
+                        console.error('获取字段信息失败:', err);
+                    }
+                };
+
+                const handleRowClick = (event) => {
+                    const target = event.target.closest('li');
+                    if (target) {
+                        const fieldId = target.getAttribute('data-field-id');
+                        selectedFieldId.value = fieldId;
+                    }
+                };
+
+                onMounted(() => {
+                    console.log('Component mounted');
+                    fetchFields();
+                    username.value = localStorage.getItem('username') || '未登录';
+                });
+
+                return {
+                    fields,
+                    username,
+                    goBack,
+                    selectedFieldId,
+                    handleRowClick
+                };
+            }
+        }).mount("#app");
+    </script>
+</body>
+
+</html>

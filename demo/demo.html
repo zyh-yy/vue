@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- {{msg}}
+
+        <h2>{{web.title}}</h2>
+        <h2>{{web.url}}</h2>
+        <h2>{{web.user}}</h2>
+
+        <button @click="edit">修改名称</button><br> -->
+
+        <!-- 回车 <input type="text" @keyup.enter="add(1,2)">
+        空格 <input type="text" @keyup.enter="add(1,2)">
+        tab <input type="text" @keydown.tab="add(111,2)">
+        w <input type="text" @keyup.w="add(100,2)"> -->
+        
+
+        <!-- <p v-show="web.show"> 展示我的数据 </p>
+        <p v-if="web.user < 10"> 展示我的数据 - if </p>
+        <p v-else-if="web.user > 10 && web.user < 100"> 展示我的数据 - else if </p>
+        <h2>{{web.show}}</h2> <hr>
+        <button @click="show">切换按钮</button> -->
+
+
+        <h3>:value="web.rul"</h3>
+        渲染1 <input :value="web.url">
+
+
+        <image :src="web.Image">
+
+        <button @click="edit">修改图片</button>
+
+        <li v-for = "(value,index) in web.arr">
+            {{value}}
+        </li>
+
+    </div>
+
+    <script type="module">
+        import { createApp, reactive } from "./vue.esm-browser.js"
+        createApp({
+            setup() {
+                const web = reactive(
+                    {
+                        arr:[1,2,3,5],
+                        title: "配置平台",
+                        url: "peizhi.com",
+                        user:50,
+                        show:true,
+                        Image:"./微信图片_20241124004726.png"
+                    }
+                )
+
+                const edit = () => {
+                    web.Image = "超级配置平台"
+                }
+                
+                const show = () => {
+                    web.show = !web.show
+                }
+
+                return {
+                    msg: "success",
+                    web,
+                    edit,
+                    show
+                }
+            }
+        }).mount("#app")
+    </script>
+</body>
+
+</html>
