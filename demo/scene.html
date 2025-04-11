@@ -12,7 +12,7 @@
     <div id="app">
         <div class="username-display">{{ username }}</div>
         <div class="tabs">
-            <div class="tab" :class="{ 'active': activeTab === 'scenes' }" @click="activeTab = 'scenes'">场景</div>
+            <div class="tab" :class="{ 'active': activeTab === 'sceneManagement' }" @click="activeTab = 'sceneManagement'">场景管理</div>
             <div class="tab" :class="{ 'active': activeTab === 'tasks' }" @click="activeTab = 'tasks'">任务</div>
             <div class="tab" :class="{ 'active': activeTab === 'addScene' }" @click="activeTab = 'addScene'">增加场景选项卡</div>
             <div class="tab" :class="{ 'active': activeTab === 'addTask' }" @click="activeTab = 'addTask'">增加任务选项卡</div>
@@ -21,7 +21,7 @@
             <div class="tab" :class="{ 'active': activeTab === 'other' }" @click="activeTab = 'other'">其他</div>
         </div>
         <div class="tab-content">
-            <div v-if="activeTab === 'scenes'">
+            <div v-if="activeTab === 'sceneManagement'">
                 <table>
                     <thead>
                         <tr>
@@ -122,7 +122,10 @@
                 </div>
                 <div class="form-group">
                     <label for="fieldType">字段类型</label>
-                    <input type="text" id="fieldType" v-model="newField.field_type" placeholder="输入字段类型"> <!-- 添加字段类型输入框 -->
+                    <select id="fieldType" v-model.number="newField.field_type">
+                        <option value="1">请求字段</option>
+                        <option value="2">结果字段</option>
+                    </select> <!-- 修改字段类型输入框为下拉选择框 -->
                 </div>
                 <div class="form-group">
                     <button @click="addField">增加字段</button>

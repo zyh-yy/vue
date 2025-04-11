@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>场景详情页</title>
+    <title>任务详情页</title>
     <link rel="stylesheet" href="scene.css">
     <style>
         .scrollable-list {
@@ -85,7 +85,7 @@
         </div>
         <div class="details-container">
             <div class="left-column">
-                <h3>已经配置的字段列表</h3>
+                <h3>已配置字段列表</h3>
                 <table class="scrollable-list" @click="handleRowClick">
                     <thead>
                         <tr>
@@ -102,7 +102,29 @@
                         </tr>
                     </tbody>
                 </table>
-                <button @click="openFieldModal">增加字段</button>
+                <div>
+                    <button @click="openFieldModal('input')">增加依赖字段</button>
+                    <button @click="openFieldModal('output')">增加产出字段</button>
+                </div>
+            </div>
+            <div class="right-column">
+                <h3>已配置输出字段列表</h3>
+                <table class="scrollable-list" @click="handleRowClick">
+                    <thead>
+                        <tr>
+                            <th>字段名称</th>
+                            <th>描述</th>
+                            <th>类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="field in outputFields" :key="field.field_id" :data-field-id="field.field_id">
+                            <td><strong>{{ field.field_name }}</strong></td>
+                            <td>{{ field.description }}</td>
+                            <td>{{ field.field_type }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -129,16 +151,18 @@
         createApp({
             setup() {
                 const fields = ref([]);
+                const outputFields = ref([]); // 新增 outputFields
                 const allFields = ref([]);
                 const username = ref('');
                 const selectedFieldId = ref(null);
                 const selectedModalFieldId = ref(null);
                 const selectedField = ref(null);
                 const resultMessage = ref('');
-                const sceneId = ref(1); // 假设场景ID为1，可以根据实际情况修改
+                const taskId = ref(null); // 假设任务ID为1，可以根据实际情况修改
+                const fieldType = ref(null); // 用于存储字段类型（依赖或产出）
 
                 const goBack = () => {
-                    window.location.href = 'scene.html';
+                    window.location.href = 'scene.html'; // 假设返回任务列表页
                 };
 
                 const fetchFields = async () => {
@@ -162,10 +186,9 @@
                     }
                 };
 
-
-                const viewSceneDetails = async (sceneId) => {
+                const viewTaskDetails = async (taskId) => {
                     try {
-                        const response = await fetch(`http://127.0.0.1:8080/api/get_scene_details/${sceneId}`, {
+                        const response = await fetch(`http://127.0.0.1:8080/api/get_task_details/${taskId}`, {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -173,28 +196,29 @@
                         });
 
                         if (!response.ok) {
-                            throw new Error('获取场景详情失败');
+                            throw new Error('获取任务详情失败');
                         }
 
                         const data = await response.json();
-                        fields.value = data.fields;
+                        fields.value = data.input_fields; // 假设返回的数据包含 fields 属性
+                        outputFields.value = data.output_fields; // 新增 output_fields
                     } catch (err) {
-                        console.error('获取场景详情失败:', err);
+                        console.error('获取任务详情失败:', err);
                     }
                 };
 
+                const handleRowClick = (event) => {
+                    const target = event.target.closest('tr');
+                    if (target) {
+                        const fieldId = target.getAttribute('data-field-id');
+                        console.log('Selected Field ID:', fieldId);
+                        selectedFieldId.value = fieldId;
+                        selectedField.value = allFields.value.find(f => f.field_id === fieldId);
+                    }
+                };
 
-                // const handleRowClick = (event) => {
-                //     const target = event.target.closest('tr');
-                //     if (target) {
-                //         const fieldId = target.getAttribute('data-field-id');
-                //         console.log('Selected Field ID:', fieldId);
-                //         selectedFieldId.value = fieldId;
-                //     }
-                // };
-
-                const openFieldModal = () => {
-                    fetchFields();
+                const openFieldModal = (type) => {
+                    fieldType.value = type; // 设置字段类型（依赖或产出）
                     document.getElementById('fieldModal').style.display = 'block';
                 };
 
@@ -203,36 +227,38 @@
                     resultMessage.value = ''; // 清空结果消息
                 };
 
-
-
                 const addSelectedField = async () => {
                     if (selectedModalFieldId.value) {
                         const field = allFields.value.find(f => f.field_id === selectedModalFieldId.value);
                         if (field) {
                             try {
-                                const response = await fetch('http://127.0.0.1:8080/api/add_field_to_scene', {
+                                const response = await fetch('http://127.0.0.1:8080/api/add_field_to_task', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json'
                                     },
                                     body: JSON.stringify({
                                         field_id: selectedModalFieldId.value,
-                                        scene_id: sceneId.value
+                                        task_id: taskId.value,
+                                        relation: fieldType.value // 确保 field_type 为数字
                                     })
                                 });
 
                                 if (!response.ok) {
-                                    throw new Error('添加字段到场景失败');
+                                    throw new Error('添加字段到任务失败');
                                 }
 
                                 const data = await response.json();
+                                // fields.value.push(field); // 更新 fields 列表
+                                viewTaskDetails(taskId.value);
                                 selectedField.value = field;
                                 resultMessage.value = '字段添加成功';
                                 closeFieldModal();
-                                viewSceneDetails(sceneId.value);
+
                             } catch (err) {
-                                console.error('添加字段到场景失败:', err);
-                                resultMessage.value = '添加字段到场景失败';
+                                viewTaskDetails(taskId.value);
+                                console.error('添加字段到任务失败:', err);
+                                resultMessage.value = '添加字段到任务失败';
                             }
                         } else {
                             resultMessage.value = '字段未找到';
@@ -245,21 +271,30 @@
                 onMounted(() => {
                     console.log('Component mounted');
 
-                    // 从 URL 参数中读取 sceneId
+                    // 从 URL 参数中读取 taskId
                     const urlParams = new URLSearchParams(window.location.search);
-                    const sceneIdFromUrl = urlParams.get('sceneId');
-                    console.log('sceneId sceneIdFromUrl');
-                    if (sceneIdFromUrl) {
-                        sceneId.value = parseInt(sceneIdFromUrl, 10); // 将 sceneId 转换为数字
+                    const taskIdFromUrl = urlParams.get('taskId');
+                    console.log('taskIdFromUrl:', taskIdFromUrl);
+                    if (taskIdFromUrl) {
+                        taskId.value = parseInt(taskIdFromUrl, 10); // 将 taskId 转换为数字
+                    } else {
+                        console.error('任务ID未提供');
+                        resultMessage.value = '任务ID未提供，请检查URL参数';
+                        return; // 如果没有 taskId，停止后续逻辑
                     }
 
-                    // 使用读取的 sceneId 获取场景详情
-                    viewSceneDetails(sceneId.value);
+                    // 使用读取的 taskId 获取任务详情
+                    viewTaskDetails(taskId.value);
+
+                    // 获取所有字段
+                    fetchFields();
+
                     username.value = localStorage.getItem('username') || '未登录';
                 });
 
                 return {
                     fields,
+                    outputFields, // 新增 outputFields
                     allFields,
                     username,
                     goBack,
@@ -267,7 +302,9 @@
                     selectedModalFieldId,
                     selectedField,
                     resultMessage,
-                    sceneId,
+                    taskId,
+                    fieldType,
+                    handleRowClick,
                     openFieldModal,
                     closeFieldModal,
                     addSelectedField

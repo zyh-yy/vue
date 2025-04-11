@@ -2,7 +2,7 @@ import { createApp, ref, onMounted } from "./vue.esm-browser.js";
 
 createApp({
     setup() {
-        const activeTab = ref('scenes');
+        const activeTab = ref('sceneManagement');
         const scenes = ref([]);
         const tasks = ref([]);
         const fields = ref([]);
@@ -143,7 +143,7 @@ createApp({
                     field_name: newField.value.field_name,
                     description: newField.value.description,
                     responsible: newField.value.responsible,
-                    field_type: newField.value.field_type // 添加 field_type
+                    field_type: newField.value.field_type // 确保 field_type 为数字
                 };
 
                 const response = await fetch('http://127.0.0.1:8080/api/set_field', {
@@ -163,29 +163,16 @@ createApp({
                 newField.value = { field_name: '', description: '', responsible: '', field_type: '' }; // 重置 field_type
                 showModal('增加字段成功:', data);
             } catch (err) {
+                getFields();
                 showModal('增加字段失败:', err.message);
             }
         };
 
         const viewSceneDetails = async (sceneId) => {
             try {
-                const response = await fetch(`http://127.0.0.1:8080/api/get_scene_details/${sceneId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('获取场景详情失败');
-                }
-
-                const data = await response.json();
-                // 将数据存储在 localStorage 中
-                localStorage.setItem('sceneDetails', JSON.stringify(data));
                 localStorage.setItem('username', username.value);
                 // 导航到下一个 HTML 文件
-                window.location.href = 'scene_details.html';
+                window.location.href = `scene_details.html?sceneId=${encodeURIComponent(sceneId)}`;
             } catch (err) {
                 console.error('获取场景详情失败:', err);
             }
@@ -198,6 +185,16 @@ createApp({
 
         const closeModal = () => {
             modal.value.style.display = 'none';
+        };
+
+        const viewTaskDetails = async (taskId) => {
+            try {
+                localStorage.setItem('username', username.value);
+                // 导航到任务详情页
+                window.location.href = `task_detail.html?taskId=${encodeURIComponent(taskId)}`;
+            } catch (err) {
+                console.error('获取任务详情失败:', err);
+            }
         };
 
         onMounted(() => {
@@ -222,6 +219,7 @@ createApp({
             addTask,
             addField,
             viewSceneDetails,
+            viewTaskDetails,
             modalMessage,
             showModal,
             closeModal,
