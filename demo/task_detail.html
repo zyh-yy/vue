@@ -89,6 +89,7 @@
                 <table class="scrollable-list" @click="handleRowClick">
                     <thead>
                         <tr>
+                            <th>字段ID</th>
                             <th>字段名称</th>
                             <th>描述</th>
                             <th>类型</th>
@@ -96,6 +97,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="field in fields" :key="field.field_id" :data-field-id="field.field_id">
+                            <td>{{field.field_id}}</td>
                             <td><strong>{{ field.field_name }}</strong></td>
                             <td>{{ field.description }}</td>
                             <td>{{ field.field_type }}</td>
@@ -245,7 +247,8 @@
                                 });
 
                                 if (!response.ok) {
-                                    throw new Error('添加字段到任务失败');
+                                    const errorData = await response.json(); // 解析JSON错误信息
+                                    throw new Error(errorData.error + (errorData.details ? `: ${errorData.details}` : '')); // 将错误信息包含在抛出的错误中
                                 }
 
                                 const data = await response.json();
@@ -258,7 +261,7 @@
                             } catch (err) {
                                 viewTaskDetails(taskId.value);
                                 console.error('添加字段到任务失败:', err);
-                                resultMessage.value = '添加字段到任务失败';
+                                resultMessage.value = err.message; // 将错误信息展示给用户
                             }
                         } else {
                             resultMessage.value = '字段未找到';

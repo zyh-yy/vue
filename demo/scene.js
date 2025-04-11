@@ -78,7 +78,6 @@ createApp({
 
         const addScene = async () => {
             try {
-                // 确保 scene_id 是数字
                 const sceneData = {
                     scene_id: Number(newScene.value.scene_id),
                     scene_name: newScene.value.scene_name,
@@ -89,9 +88,7 @@ createApp({
 
                 const response = await fetch('http://127.0.0.1:8080/api/set_scene', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(sceneData)
                 });
 
@@ -100,7 +97,7 @@ createApp({
                 }
 
                 const data = await response.json();
-                getScenes();
+                getScenes(); // 刷新场景列表
                 newScene.value = { scene_id: '', scene_name: '', description: '', detail: '', responsible: '' };
                 showModal('增加场景成功:', data);
             } catch (err) {
@@ -118,9 +115,7 @@ createApp({
 
                 const response = await fetch('http://127.0.0.1:8080/api/set_task', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(taskData)
                 });
 
@@ -129,7 +124,7 @@ createApp({
                 }
 
                 const data = await response.json();
-                getTasks();
+                getTasks(); // 刷新任务列表
                 newTask.value = { task_name: '', description: '', responsible: '' };
                 showModal('增加任务成功:', data);
             } catch (err) {
